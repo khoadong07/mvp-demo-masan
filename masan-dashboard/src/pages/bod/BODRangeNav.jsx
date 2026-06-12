@@ -3,6 +3,8 @@ import { T } from "../../constants/theme";
 const TITLES = {
   "dien-bien": "Diễn biến tin Tích cực & Tiêu cực theo thời gian",
   "ty-le": "Tỷ trọng tin Tích cực & Tiêu cực",
+  "ty-le-kenh": "Tỷ lệ phân bổ theo kênh",
+  "top-nguon": "Top nguồn đăng",
 };
 
 function pill(active) {
@@ -12,9 +14,9 @@ function pill(active) {
     border: "none",
     fontSize: 12.5,
     fontWeight: active ? 700 : 500,
-    color: active ? T.navyDark : T.textSub,
-    background: active ? T.white : "transparent",
-    boxShadow: active ? "0 1px 3px rgba(20,63,114,.12)" : "none",
+    color: active ? "#fff" : T.textSub,
+    background: active ? T.navy : "transparent",
+    boxShadow: "none",
     cursor: "pointer",
   };
 }
@@ -36,11 +38,19 @@ export function RangeToggle({ range, setRange }) {
   );
 }
 
+const VIEWS = ["dien-bien", "ty-le", "ty-le-kenh", "top-nguon"];
+const SENTIMENT_PAIR = ["dien-bien", "ty-le"];
+const CHANNEL_PAIR = ["ty-le-kenh", "top-nguon"];
+
 export function BODHeaderNav({ active, setTab }) {
+  const idx = VIEWS.indexOf(active);
+  const prev = VIEWS[(idx - 1 + VIEWS.length) % VIEWS.length];
+  const next = VIEWS[(idx + 1) % VIEWS.length];
+  const pair = SENTIMENT_PAIR.includes(active) ? SENTIMENT_PAIR : CHANNEL_PAIR;
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
-      <NavBtn onClick={() => setTab?.("tong-quan")}>‹</NavBtn>
-      {["dien-bien", "ty-le"].map((k, i) => {
+      <NavBtn onClick={() => setTab?.(prev)}>‹</NavBtn>
+      {pair.map((k, i) => {
         const isActive = k === active;
         return (
           <div key={k} onClick={() => !isActive && setTab?.(k)}
@@ -49,7 +59,7 @@ export function BODHeaderNav({ active, setTab }) {
           </div>
         );
       })}
-      <NavBtn onClick={() => setTab?.("nguon")}>›</NavBtn>
+      <NavBtn onClick={() => setTab?.(next)}>›</NavBtn>
     </div>
   );
 }

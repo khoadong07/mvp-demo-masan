@@ -3,7 +3,7 @@ import { T } from "../../constants/theme";
 import { ArticleGrid } from "../../components/common/ArticleGrid";
 import { Pagination } from "../../components/common/Pagination";
 
-const PAGE_SIZE = 4;
+const PAGE_SIZE = 6;
 
 export function BODFeaturedNews({ articles }) {
   const [page, setPage] = useState(1);

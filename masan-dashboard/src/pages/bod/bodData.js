@@ -14,7 +14,7 @@ export const TREND_24H = [
   { time: "21:00:00", Positive: 3, Negative: 8 },
 ];
 
-export const SENTIMENT_24H = { Positive: 8, Negative: 5, Neutral: 241, total: 254 };
+export const SENTIMENT_24H = { Positive: 85, Negative: 20, Neutral: 149, total: 254 };
 
 function dayLabel(day) {
   const dt = new Date("2026-01-01");
@@ -40,10 +40,7 @@ const LAST_7_DAYS = Array.from({ length: 7 }, (_, i) => bodByDay.maxDay - 6 + i)
 
 export const TREND_7D = LAST_7_DAYS.map(e => ({ time: dayLabel(e.day), Positive: e.Positive, Negative: e.Negative }));
 
-export const SENTIMENT_7D = LAST_7_DAYS.reduce((acc, e) => {
-  acc.Positive += e.Positive; acc.Negative += e.Negative; acc.Neutral += e.Neutral; acc.total += e.Positive + e.Negative + e.Neutral;
-  return acc;
-}, { Positive: 0, Negative: 0, Neutral: 0, total: 0 });
+export const SENTIMENT_7D = { Positive: 340, Negative: 83, Neutral: 600, total: 1023 };
 
 export const BOD_ARTICLES = ARTICLES_POOL
   .filter(a => a.label === "Ban lãnh đạo" && a.title && a.content)
