@@ -8,7 +8,7 @@ import { SENTIMENT_24H, SENTIMENT_7D, BOD_ARTICLES } from "./bodData";
 const RADIAN = Math.PI / 180;
 
 const renderLabel = ({ cx, cy, midAngle, outerRadius, name, index }) => {
-  const stagger = [20, 36, 60][index] ?? 20;
+  const stagger = [20, 36, 24][index] ?? 20;
   const lineEnd = outerRadius + stagger;
   const r = lineEnd + 14;
   const x = cx + r * Math.cos(-midAngle * RADIAN);

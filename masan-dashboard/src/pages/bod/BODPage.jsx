@@ -4,14 +4,20 @@ import { Card } from "../../components/common/Card";
 import { Stat } from "../../components/common/Stat";
 import { TabBar } from "../../components/common/TabBar";
 import { FilterBar } from "../../components/layout/FilterBar";
+import { MaintenancePage } from "../../components/common/MaintenancePage";
 import { BODTongQuan } from "./BODTongQuan";
 import { BODDienBien } from "./BODDienBien";
 import { BODTyLe } from "./BODTyLe";
 import { BODNguon } from "./BODNguon";
 import RAW from "../../data/raw.json";
 
+const MAINTENANCE = true;
+
 export function BODPage() {
   const [tab, setTab] = useState("tong-quan");
+
+  if (MAINTENANCE) return <MaintenancePage title="Ban lãnh đạo (BOD) đang được bảo trì" />;
+
   const b = RAW.bod;
   const tabs = [{ k: "tong-quan", l: "Tổng quan BOD" }, { k: "dien-bien", l: "Diễn biến tiêu cực" }, { k: "ty-le", l: "Tỷ trọng Tích/Tiêu" }, { k: "nguon", l: "Top nguồn tin" }];
   const nsrV = nsr(b.sentiment.Positive || 0, b.sentiment.Negative || 0, b.total);
