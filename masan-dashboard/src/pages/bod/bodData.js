@@ -22,7 +22,7 @@ function dayLabel(day) {
   return String(dt.getDate()).padStart(2, "0") + "/" + String(dt.getMonth() + 1).padStart(2, "0");
 }
 
-const bodByDay = (() => {
+export const bodByDay = (() => {
   const map = new Map();
   let maxDay = 0;
   for (const [day, , , si, li] of ALL_ROWS) {
@@ -45,3 +45,25 @@ export const SENTIMENT_7D = { Positive: 340, Negative: 83, Neutral: 600, total: 
 export const BOD_ARTICLES = ARTICLES_POOL
   .filter(a => a.label === "Ban lãnh đạo" && a.title && a.content)
   .sort((a, b) => b.date.localeCompare(a.date));
+
+export function bodSentimentForLastDays(n) {
+  const { map, maxDay } = bodByDay;
+  const totals = { Positive: 0, Negative: 0, Neutral: 0 };
+  for (let d = maxDay - n + 1; d <= maxDay; d++) {
+    const e = map.get(d);
+    if (e) { totals.Positive += e.Positive; totals.Negative += e.Negative; totals.Neutral += e.Neutral; }
+  }
+  totals.total = totals.Positive + totals.Negative + totals.Neutral;
+  return totals;
+}
+
+export const BOD_HOT_TOPICS = [
+  { topic: "Tin đồn nhân sự cấp cao", base: { Positive: 2, Negative: 19, Neutral: 6 } },
+  { topic: "Phát ngôn xử lý khủng hoảng", base: { Positive: 3, Negative: 15, Neutral: 5 } },
+  { topic: "Tái cấu trúc & sáp nhập", base: { Positive: 4, Negative: 11, Neutral: 8 } },
+  { topic: "Chính sách lương & đãi ngộ", base: { Positive: 6, Negative: 9, Neutral: 11 } },
+  { topic: "ĐHCĐ - phản hồi cổ đông", base: { Positive: 9, Negative: 7, Neutral: 13 } },
+  { topic: "Phát ngôn lãnh đạo về chiến lược", base: { Positive: 11, Negative: 5, Neutral: 16 } },
+  { topic: "Hình ảnh lãnh đạo trên truyền thông", base: { Positive: 13, Negative: 3, Neutral: 10 } },
+  { topic: "Tầm nhìn phát triển bền vững (ESG)", base: { Positive: 15, Negative: 2, Neutral: 14 } },
+];

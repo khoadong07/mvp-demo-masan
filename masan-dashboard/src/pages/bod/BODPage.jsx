@@ -1,24 +1,24 @@
 import { useState } from "react";
 import { T } from "../../constants/theme";
-import { Card } from "../../components/common/Card";
+import { TabBar } from "../../components/common/TabBar";
 import { FilterBar } from "../../components/layout/FilterBar";
-import { BODDienBien } from "./BODDienBien";
-import { BODTyLe } from "./BODTyLe";
-import { BODChannelRatio } from "./BODChannelRatio";
-import { BODTopSources } from "./BODTopSources";
+import { BODTongQuan } from "./BODTongQuan";
+import { BODMoHinhDanhGia } from "./BODMoHinhDanhGia";
+
+const TABS = [
+  { k: "tong-quan", l: "Tổng quan" },
+  { k: "mo-hinh-danh-gia", l: "Mô hình đánh giá" },
+];
 
 export function BODPage() {
-  const [tab, setTab] = useState("dien-bien");
+  const [tab, setTab] = useState("tong-quan");
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
       <FilterBar />
       <div style={{ flex: 1, overflow: "auto", background: T.bg, padding: "18px 20px" }}>
-        <Card style={{ padding: "20px 22px" }}>
-          {tab === "dien-bien" && <BODDienBien setTab={setTab} />}
-          {tab === "ty-le" && <BODTyLe setTab={setTab} />}
-          {tab === "ty-le-kenh" && <BODChannelRatio setTab={setTab} />}
-          {tab === "top-nguon" && <BODTopSources setTab={setTab} />}
-        </Card>
+        <TabBar tabs={TABS} active={tab} onSelect={setTab} />
+        {tab === "tong-quan" && <BODTongQuan />}
+        {tab === "mo-hinh-danh-gia" && <BODMoHinhDanhGia />}
       </div>
     </div>
   );
