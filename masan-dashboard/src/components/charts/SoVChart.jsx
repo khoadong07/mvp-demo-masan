@@ -6,9 +6,11 @@ export function SoVChart() {
   const data = COMP.comp_summary;
   const total = COMP.total_all;
   const RADIAN = Math.PI / 180;
-  const renderLabel = ({ cx, cy, midAngle, outerRadius, name, percent, fill }) => {
+  const renderLabel = ({ cx, cy, midAngle, outerRadius, name, percent, fill, index }) => {
     if (percent < 0.01) return null;
-    const r = outerRadius + 30;
+    const stagger = index % 2 === 0 ? 22 : 40;
+    const lineEnd = outerRadius + stagger;
+    const r = lineEnd + 14;
     const x = cx + r * Math.cos(-midAngle * RADIAN);
     const y = cy + r * Math.sin(-midAngle * RADIAN);
     const pctStr = (percent * 100).toFixed(2) + "%";
@@ -16,38 +18,31 @@ export function SoVChart() {
     return (
       <g>
         <line x1={cx + (outerRadius + 4) * Math.cos(-midAngle * RADIAN)} y1={cy + (outerRadius + 4) * Math.sin(-midAngle * RADIAN)}
-          x2={cx + (outerRadius + 18) * Math.cos(-midAngle * RADIAN)} y2={cy + (outerRadius + 18) * Math.sin(-midAngle * RADIAN)}
+          x2={cx + lineEnd * Math.cos(-midAngle * RADIAN)} y2={cy + lineEnd * Math.sin(-midAngle * RADIAN)}
           stroke={fill} strokeWidth="1.5" />
         <text x={x} y={y - 7} textAnchor={anchor} fontSize="10" fontWeight="700" fill={T.textPrimary}>{name}</text>
         <text x={x} y={y + 6} textAnchor={anchor} fontSize="10" fontWeight="700" fill={fill}>{pctStr}</text>
       </g>
     );
   };
-  const CenterLabel = ({ viewBox }) => {
-    const { cx, cy } = viewBox || { cx: 0, cy: 0 };
-    return (
-      <g>
-        <text x={cx} y={cy - 6} textAnchor="middle" fontSize="24" fontWeight="900" fill={T.navyDark}>{fmt(total)}</text>
-        <text x={cx} y={cy + 13} textAnchor="middle" fontSize="10" fill={T.textSub}>tổng thảo luận</text>
-      </g>
-    );
-  };
   return (
-    <div style={{ flex: 1, display: "flex", gap: 24, alignItems: "center", justifyContent: "center" }}>
-      <div style={{ flex: "0 0 auto" }}>
-        <ResponsiveContainer width={480} height={360}>
-          <PieChart margin={{ top: 40, right: 80, bottom: 40, left: 80 }}>
+    <div style={{ flex: 1, display: "flex", flexWrap: "wrap", gap: 20, alignItems: "center", justifyContent: "center", minWidth: 0 }}>
+      <div style={{ position: "relative", flex: "1 1 320px", minWidth: 0, maxWidth: 420 }}>
+        <ResponsiveContainer width="100%" height={300}>
+          <PieChart margin={{ top: 30, right: 46, bottom: 30, left: 46 }}>
             <Pie data={data} dataKey="total" nameKey="name" cx="50%" cy="50%"
-              innerRadius={80} outerRadius={130} labelLine={false} label={renderLabel}>
+              innerRadius={64} outerRadius={100} labelLine={false} label={renderLabel}>
               {data.map((e, i) => <Cell key={i} fill={e.color} />)}
             </Pie>
-            <Pie data={[{ v: 1 }]} dataKey="v" cx="50%" cy="50%" innerRadius={0} outerRadius={0}
-              label={<CenterLabel />} labelLine={false} fill="transparent" />
             <Tooltip formatter={(v, n) => [fmt(v) + " bài", n]} contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid " + T.border }} />
           </PieChart>
         </ResponsiveContainer>
+        <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", textAlign: "center", pointerEvents: "none" }}>
+          <div style={{ fontSize: 24, fontWeight: 900, color: T.navyDark }}>{fmt(total)}</div>
+          <div style={{ fontSize: 10, color: T.textSub }}>tổng thảo luận</div>
+        </div>
       </div>
-      <div style={{ flex: "0 0 auto", display: "flex", flexDirection: "column", gap: 14 }}>
+      <div style={{ flex: "0 1 160px", minWidth: 140, display: "flex", flexDirection: "column", gap: 14 }}>
         {data.map((d, i) => (
           <div key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <div style={{ width: 12, height: 12, borderRadius: "50%", background: d.color, flexShrink: 0 }} />
