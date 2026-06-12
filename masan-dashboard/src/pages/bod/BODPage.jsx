@@ -28,8 +28,8 @@ export function BODPage() {
         <Card style={{ padding: "20px 22px" }}>
           <TabBar tabs={tabs} active={tab} onSelect={setTab} />
           {tab === "tong-quan" && <BODTongQuan />}
-          {tab === "dien-bien" && <BODDienBien />}
-          {tab === "ty-le" && <BODTyLe />}
+          {tab === "dien-bien" && <BODDienBien setTab={setTab} />}
+          {tab === "ty-le" && <BODTyLe setTab={setTab} />}
           {tab === "nguon" && <BODNguon />}
         </Card>
       </div>
