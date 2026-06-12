@@ -2,5 +2,10 @@ services:
   dashboard:
     build: .
     ports:
-      - "8080:80"
+      - "8180:80"
     restart: unless-stopped
+
+networks:
+  default:
+    external: true
+    name: ubuntu-container_default
