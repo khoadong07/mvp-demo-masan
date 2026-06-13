@@ -1,6 +1,11 @@
-<svg width="38" height="38" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect x="2" y="2" width="15" height="15" rx="2" fill="#1877C8"/>
-  <rect x="21" y="2" width="15" height="15" rx="2" fill="#1877C8" opacity=".75"/>
-  <rect x="2" y="21" width="15" height="15" rx="2" fill="#1877C8" opacity=".55"/>
-  <rect x="21" y="21" width="15" height="15" rx="2" fill="#1877C8" opacity=".35"/>
+<svg viewBox="0 0 108 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Official Masan Group cascading-rectangle icon -->
+  <!-- Shape 1: dark navy — top-right accent -->
+  <rect x="68" y="0" width="40" height="44" fill="#0B3160"/>
+  <!-- Shape 2: dark navy — main body -->
+  <rect x="44" y="18" width="56" height="60" fill="#1762A4"/>
+  <!-- Shape 3: medium blue -->
+  <rect x="20" y="36" width="52" height="60" fill="#4E8EC4"/>
+  <!-- Shape 4: light blue — front-left -->
+  <rect x="0" y="56" width="46" height="40" fill="#84B6D4"/>
 </svg>

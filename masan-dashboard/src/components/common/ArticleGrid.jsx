@@ -21,8 +21,8 @@ export function ArticleGrid({ articles }) {
           </div>
           {/* Title */}
           <div className="atitle" style={{ fontSize: 13, fontWeight: 700, color: T.navy, marginBottom: 4, lineHeight: 1.4, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden", transition: "color .15s" }}>{a.title}</div>
-          {/* Excerpt */}
-          <div style={{ fontSize: 12, color: T.textSub, lineHeight: 1.5, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{(a.content || a.description || "").slice(0, 100)}...</div>
+          {/* Content */}
+          <div style={{ fontSize: 12, color: T.textSub, lineHeight: 1.5 }}>{a.content || a.description || ""}</div>
         </a>
       ))}
     </div>

@@ -3,11 +3,11 @@ import { T } from "../../constants/theme";
 function MasanLogo({ collapsed }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: collapsed ? 0 : 8, overflow: "hidden", transition: "all .22s ease" }}>
-      <svg width="36" height="36" viewBox="0 0 38 38" fill="none" style={{ flexShrink: 0 }}>
-        <rect x="2" y="2" width="15" height="15" rx="2" fill="#1877C8" />
-        <rect x="21" y="2" width="15" height="15" rx="2" fill="#1877C8" opacity=".75" />
-        <rect x="2" y="21" width="15" height="15" rx="2" fill="#1877C8" opacity=".55" />
-        <rect x="21" y="21" width="15" height="15" rx="2" fill="#1877C8" opacity=".35" />
+      <svg width="36" height="34" viewBox="0 0 108 96" fill="none" style={{ flexShrink: 0 }}>
+        <rect x="68" y="0" width="40" height="44" fill="#0B3160"/>
+        <rect x="44" y="18" width="56" height="60" fill="#1762A4"/>
+        <rect x="20" y="36" width="52" height="60" fill="#4E8EC4"/>
+        <rect x="0" y="56" width="46" height="40" fill="#84B6D4"/>
       </svg>
       {!collapsed && <div style={{ lineHeight: 1.15, overflow: "hidden", whiteSpace: "nowrap" }}>
         <div style={{ fontSize: 15, fontWeight: 900, color: T.navyDark, letterSpacing: 1.5 }}>MASAN</div>

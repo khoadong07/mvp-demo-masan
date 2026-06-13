@@ -43,6 +43,10 @@ export function BODDienBien({ setTab }) {
   };
 
   const articles = useMemo(() => {
+    // Day range for the selected period (BASE_MAX_DAY = 119 matches useBodData mock)
+    const DAY_END = 119;
+    const dayStart = range === "24h" ? DAY_END : range === "7d" ? DAY_END - 6 : DAY_END - 29;
+
     const visibleSents = SENT_KEYS.filter(k => !hiddenKeys.has(k));
     let sent = null;
     if (clickFilter?.sentiment && !hiddenKeys.has(clickFilter.sentiment)) {
@@ -51,8 +55,13 @@ export function BODDienBien({ setTab }) {
       sent = visibleSents[0];
     }
     const cf = (sent || clickFilter?.day !== undefined) ? { sentiment: sent, day: clickFilter?.day } : null;
-    return filterBodArticles(fc?.applied, cf);
-  }, [fc?.applied, clickFilter, hiddenKeys]);
+    let list = filterBodArticles(fc?.applied, cf);
+    // When no specific bar was clicked, restrict to the active time window
+    if (clickFilter?.day === undefined) {
+      list = list.filter(a => a.day >= dayStart && a.day <= DAY_END);
+    }
+    return list;
+  }, [fc?.applied, clickFilter, hiddenKeys, range]);
 
   const hasFilter = clickFilter !== null || hiddenKeys.size > 0;
   const resetAll = () => { setClickFilter(null); setHiddenKeys(new Set()); };
