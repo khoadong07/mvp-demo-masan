@@ -34,6 +34,7 @@ export function RangeToggle({ range, setRange }) {
     <div style={{ display: "inline-flex", background: T.bg, borderRadius: 8, padding: 3, marginBottom: 18 }}>
       <button onClick={() => setRange("24h")} style={pill(range === "24h")}>Trong vòng 24h</button>
       <button onClick={() => setRange("7d")} style={pill(range === "7d")}>Trong vòng 7 ngày</button>
+      <button onClick={() => setRange("30d")} style={pill(range === "30d")}>Trong vòng 30 ngày</button>
     </div>
   );
 }

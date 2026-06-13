@@ -1,4 +1,5 @@
-import { ALL_ROWS } from "../../utils/aggregation";
+import { ALL_ROWS, dateToDayOff } from "../../utils/aggregation";
+import { META } from "../../constants/meta";
 import ARTICLES_POOL from "../../data/articlesPool.json";
 
 const BOD_LABEL_IDX = 10; // META.labels[10] === "Ban lãnh đạo"
@@ -67,3 +68,33 @@ export const BOD_HOT_TOPICS = [
   { topic: "Hình ảnh lãnh đạo trên truyền thông", base: { Positive: 13, Negative: 3, Neutral: 10 } },
   { topic: "Tầm nhìn phát triển bền vững (ESG)", base: { Positive: 15, Negative: 2, Neutral: 14 } },
 ];
+
+const SENT_NAME = ["Positive", "Negative", "Neutral"];
+
+export function filterBodArticles(applied, clickFilter) {
+  let list = BOD_ARTICLES;
+
+  if (applied) {
+    const fd = dateToDayOff(applied.dateFrom);
+    const td = dateToDayOff(applied.dateTo);
+    const narrowed = list.filter(a => {
+      if (a.day < fd || a.day > td) return false;
+      if (applied.sentiment >= 0 && a.sentiment !== SENT_NAME[applied.sentiment]) return false;
+      if (applied.channel >= 0 && a.channel !== META.channels[applied.channel]) return false;
+      return true;
+    });
+    if (narrowed.length) list = narrowed;
+  }
+
+  if (clickFilter) {
+    const narrowed = list.filter(a => {
+      if (clickFilter.sentiment && a.sentiment !== clickFilter.sentiment) return false;
+      if (clickFilter.channel && a.channel !== clickFilter.channel) return false;
+      if (clickFilter.day !== undefined && a.day !== clickFilter.day) return false;
+      return true;
+    });
+    return narrowed.length ? narrowed : list;
+  }
+
+  return list;
+}

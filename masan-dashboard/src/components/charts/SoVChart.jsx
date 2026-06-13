@@ -1,10 +1,22 @@
+import { useState } from "react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import { T, fmt } from "../../constants/theme";
 import COMP from "../../data/comp.json";
 
 export function SoVChart() {
-  const data = COMP.comp_summary;
+  const [hiddenKeys, setHiddenKeys] = useState(new Set());
+  const allData = COMP.comp_summary;
   const total = COMP.total_all;
+  const data = allData.filter(d => !hiddenKeys.has(d.name));
+
+  const toggleKey = (name) => {
+    setHiddenKeys(prev => {
+      const next = new Set(prev);
+      if (next.has(name)) next.delete(name); else next.add(name);
+      return next;
+    });
+  };
+
   const RADIAN = Math.PI / 180;
   const renderLabel = ({ cx, cy, midAngle, outerRadius, name, percent, fill, index }) => {
     if (percent < 0.01) return null;
@@ -25,6 +37,7 @@ export function SoVChart() {
       </g>
     );
   };
+
   return (
     <div style={{ flex: 1, display: "flex", flexWrap: "wrap", gap: 20, alignItems: "center", justifyContent: "center", minWidth: 0 }}>
       <div style={{ position: "relative", flex: "1 1 320px", minWidth: 0, maxWidth: 420 }}>
@@ -43,12 +56,16 @@ export function SoVChart() {
         </div>
       </div>
       <div style={{ flex: "0 1 160px", minWidth: 140, display: "flex", flexDirection: "column", gap: 14 }}>
-        {data.map((d, i) => (
-          <div key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div style={{ width: 12, height: 12, borderRadius: "50%", background: d.color, flexShrink: 0 }} />
-            <span style={{ fontSize: 13, color: T.textPrimary, fontWeight: 500 }}>{d.name}</span>
-          </div>
-        ))}
+        {allData.map((d, i) => {
+          const isHidden = hiddenKeys.has(d.name);
+          return (
+            <div key={i} onClick={() => toggleKey(d.name)}
+              style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", opacity: isHidden ? 0.35 : 1 }}>
+              <div style={{ width: 12, height: 12, borderRadius: "50%", background: isHidden ? "transparent" : d.color, border: "2px solid " + d.color, flexShrink: 0 }} />
+              <span style={{ fontSize: 13, color: T.textPrimary, fontWeight: 500, textDecoration: isHidden ? "line-through" : "none" }}>{d.name}</span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

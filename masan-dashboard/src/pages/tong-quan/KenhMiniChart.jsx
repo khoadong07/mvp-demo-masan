@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { T } from "../../constants/theme";
 import COMP from "../../data/comp.json";
@@ -26,6 +27,17 @@ function PctLabel(props) {
 }
 
 export function KenhMiniChart() {
+  const [hiddenKeys, setHiddenKeys] = useState(new Set());
+
+  const toggleLegend = (payload) => {
+    const key = payload.dataKey;
+    setHiddenKeys(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      return next;
+    });
+  };
+
   const data = COMP.comp_summary.map(b => ({
     name: b.name,
     ...Object.fromEntries(ALL_CH.map(ch => [ch, b.ch_pct?.[ch] || 0])),
@@ -38,10 +50,11 @@ export function KenhMiniChart() {
           <XAxis dataKey="name" tick={{ fontSize: 11, fill: T.textPrimary, fontWeight: 500 }} tickLine={false} axisLine={{ stroke: T.border }} />
           <YAxis tickFormatter={v => v + "%"} tick={{ fontSize: 10, fill: T.textSub }} tickLine={false} axisLine={false} domain={[0, 100]} ticks={[0, 25, 50, 75, 100]} />
           <Tooltip formatter={(v, n) => [v.toFixed(2) + "%", n]} contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid " + T.border }} />
-          <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11 }} />
+          <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11, cursor: "pointer" }} onClick={toggleLegend} />
           {ALL_CH.map(ch => (
             <Bar key={ch} dataKey={ch} name={ch} stackId="a" fill={CH_COLORS_KENH[ch] || "#95A5A6"}
-              label={p => <PctLabel {...p} pct={data[p.index]?.[ch]} />} />
+              label={p => <PctLabel {...p} pct={data[p.index]?.[ch]} />}
+              hide={hiddenKeys.has(ch)} />
           ))}
         </BarChart>
       </ResponsiveContainer>

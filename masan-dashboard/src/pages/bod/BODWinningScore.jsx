@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from "recharts";
 import { T, fmt, nsr } from "../../constants/theme";
 import { CT } from "../../components/common/CT";
@@ -32,6 +33,17 @@ function classify(score) {
 }
 
 export function BODWinningScore() {
+  const [hiddenKeys, setHiddenKeys] = useState(new Set());
+
+  const toggleLegend = (payload) => {
+    const key = payload.dataKey;
+    setHiddenKeys(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      return next;
+    });
+  };
+
   const rows = WINNING_SCORE_KEYWORDS.map(k => {
     const nsrVal = parseFloat(nsr(k.positive, k.negative, k.total));
     const winningScore = Math.max(0, Math.min(100, Math.round((k.total / TOTAL_ALL) * 50 + nsrVal * 0.5)));
@@ -44,6 +56,23 @@ export function BODWinningScore() {
         <b style={{ color: T.navyDark }}>Winning Score</b> đo mức độ "thắng thế" của một từ khóa hoặc tuyến bài trong tổng thể truyền thông, kết hợp độ phủ (tổng tin), sắc thái cảm xúc (NSR) và mức độ ảnh hưởng đến điểm số chung.
         <br />
         Công thức đề xuất: <b>Winning Score = (Tổng tin / Tổng tin toàn nhãn) × 50 + NSR × 0.5</b>, thang điểm 0–100.
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: "0 24px", background: T.bg, borderRadius: 10, padding: "14px 18px", marginBottom: 22, fontSize: 12 }}>
+        <div style={{ fontWeight: 700, color: T.navyDark, paddingBottom: 8, borderBottom: "1px solid " + T.border }}>Winning Score</div>
+        <div style={{ fontWeight: 700, color: T.navyDark, paddingBottom: 8, borderBottom: "1px solid " + T.border }}>Diễn giải</div>
+        {[
+          ["80–100", "Chủ đề dẫn dắt truyền thông, độ phủ cao và sentiment tích cực"],
+          ["60–79",  "Chủ đề mạnh, đóng góp đáng kể cho hình ảnh thương hiệu"],
+          ["40–59",  "Chủ đề trung bình, có hiện diện nhưng chưa tạo ưu thế rõ rệt"],
+          ["20–39",  "Chủ đề yếu hoặc sentiment chưa tích cực"],
+          ["<20",    "Chủ đề không tạo giá trị hoặc có nguy cơ ảnh hưởng tiêu cực"],
+        ].map(([score, desc]) => (
+          <>
+            <div key={score + "s"} style={{ fontWeight: 700, color: T.textPrimary, padding: "10px 0", borderBottom: "1px solid " + T.border }}>{score}</div>
+            <div key={score + "d"} style={{ color: T.textSub, padding: "10px 0", borderBottom: "1px solid " + T.border }}>{desc}</div>
+          </>
+        ))}
       </div>
 
       <div style={{ fontSize: 15, fontWeight: 800, color: T.navyDark, marginBottom: 14 }}>Winning Score theo từ khóa</div>
@@ -80,9 +109,9 @@ export function BODWinningScore() {
           <XAxis type="number" tick={{ fontSize: 10, fill: T.textSub }} tickLine={false} axisLine={{ stroke: T.border }} />
           <YAxis type="category" dataKey="name" width={180} tick={{ fontSize: 11, fill: T.textSub }} tickLine={false} axisLine={false} />
           <Tooltip content={<CT />} />
-          <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11 }} />
-          <Bar dataKey="impact" name="Mức ảnh hưởng tới Total Score" fill={T.navy} radius={[0, 4, 4, 0]} />
-          <Bar dataKey="nsrVal" name="NSR (%)" radius={[0, 4, 4, 0]}>
+          <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11, cursor: "pointer" }} onClick={toggleLegend} />
+          <Bar dataKey="impact" name="Mức ảnh hưởng tới Total Score" fill={T.navy} radius={[0, 4, 4, 0]} hide={hiddenKeys.has("impact")} />
+          <Bar dataKey="nsrVal" name="NSR (%)" radius={[0, 4, 4, 0]} hide={hiddenKeys.has("nsrVal")}>
             {CONTENT_LINE_IMPACT.map((e, i) => <Cell key={i} fill={e.nsrVal >= 0 ? T.positive : T.negative} />)}
           </Bar>
         </BarChart>

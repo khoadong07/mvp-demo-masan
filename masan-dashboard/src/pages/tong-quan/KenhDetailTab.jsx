@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { T, fmt, pct, nsr } from "../../constants/theme";
 import { META } from "../../constants/meta";
@@ -9,7 +9,17 @@ import { computeAgg } from "../../utils/aggregation";
 import RAW_CHANNELS from "../../data/rawChannels.json";
 
 export function KenhDetailTab({ channel }) {
+  const [hiddenKeys, setHiddenKeys] = useState(new Set());
   const fc = useFC();
+
+  const toggleLegend = (payload) => {
+    const key = payload.dataKey;
+    setHiddenKeys(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      return next;
+    });
+  };
   const ci = META.channels.indexOf(channel);
   const d_base = RAW_CHANNELS[channel] || { total: 0, Positive: 0, Negative: 0, Neutral: 0, trend_weekly: [], top_sites: [] };
   // When filter is active, compute from filtered rows for this channel
@@ -40,10 +50,10 @@ export function KenhDetailTab({ channel }) {
               <CartesianGrid strokeDasharray="3 3" stroke="#EAF0F8" vertical={false} />
               <XAxis dataKey="week" tick={{ fontSize: 9, fill: T.textSub }} tickLine={false} axisLine={{ stroke: T.border }} interval={2} />
               <YAxis tick={{ fontSize: 10, fill: T.textSub }} tickLine={false} axisLine={false} tickFormatter={fmt} />
-              <Tooltip content={<CT />} /><Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11 }} />
-              <Bar dataKey="total" name="Tổng" fill={T.navy + "22"} radius={[2, 2, 0, 0]} />
-              <Line type="monotone" dataKey="Positive" name="Tích cực" stroke={T.positive} strokeWidth={2} dot={false} />
-              <Line type="monotone" dataKey="Negative" name="Tiêu cực" stroke={T.negative} strokeWidth={2} dot={false} />
+              <Tooltip content={<CT />} /><Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11, cursor: "pointer" }} onClick={toggleLegend} />
+              <Bar dataKey="total" name="Tổng" fill={T.navy + "22"} radius={[2, 2, 0, 0]} hide={hiddenKeys.has("total")} />
+              <Line type="monotone" dataKey="Positive" name="Tích cực" stroke={T.positive} strokeWidth={2} dot={false} hide={hiddenKeys.has("Positive")} />
+              <Line type="monotone" dataKey="Negative" name="Tiêu cực" stroke={T.negative} strokeWidth={2} dot={false} hide={hiddenKeys.has("Negative")} />
             </ComposedChart>
           </ResponsiveContainer>
         </div>

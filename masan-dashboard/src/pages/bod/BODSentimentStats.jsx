@@ -1,6 +1,6 @@
 import { T, fmt, pct, nsr } from "../../constants/theme";
 import { Stat } from "../../components/common/Stat";
-import { bodSentimentForLastDays } from "./bodData";
+import { useBodSentimentForPeriod } from "./useBodData";
 
 const SEGMENTS = [
   { key: "Positive", label: "Tích cực", color: T.positive },
@@ -9,7 +9,7 @@ const SEGMENTS = [
 ];
 
 export function BODSentimentStats({ period }) {
-  const { Positive, Negative, Neutral, total } = bodSentimentForLastDays(period);
+  const { Positive, Negative, Neutral, total } = useBodSentimentForPeriod(period);
   const nsrVal = parseFloat(nsr(Positive, Negative, total));
 
   return (

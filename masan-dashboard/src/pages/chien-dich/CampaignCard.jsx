@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { T } from "../../constants/theme";
 import { Card } from "../../components/common/Card";
 import { Pagination } from "../../components/common/Pagination";
@@ -7,6 +7,7 @@ import { CampaignTrendline } from "./CampaignTrendline";
 import { CampaignChannelRatio } from "./CampaignChannelRatio";
 import { CampaignTopics } from "./CampaignTopics";
 import { CampaignTopSources } from "./CampaignTopSources";
+import { useCampaignData } from "./useCampaignData";
 
 const CH_ICON_BG = { Facebook: "#1877F2", Tiktok: "#111", Youtube: "#FF0000", News: "#F39C12", Social: "#8E44AD", Forum: "#16A085", Threads: "#333" };
 const CH_ICON_LABEL = { Facebook: "f", Youtube: "▶", Tiktok: "T", News: "N", Social: "S", Forum: "F", Threads: "@" };
@@ -49,9 +50,12 @@ export function CampaignCard({ campaign }) {
   const goPrev = () => setViewIdx(i => (i - 1 + VIEWS.length) % VIEWS.length);
   const goNext = () => setViewIdx(i => (i + 1) % VIEWS.length);
 
+  const data = useCampaignData(campaign);
+  useEffect(() => setPage(1), [data.articles]);
+
   const perPage = 4;
-  const totalPages = Math.max(1, Math.ceil(campaign.articles.length / perPage));
-  const pageItems = campaign.articles.slice((page - 1) * perPage, page * perPage);
+  const totalPages = Math.max(1, Math.ceil(data.articles.length / perPage));
+  const pageItems = data.articles.slice((page - 1) * perPage, page * perPage);
 
   return (
     <Card style={{ padding: "20px 24px", display: "flex", flexDirection: "column" }}>
@@ -59,7 +63,7 @@ export function CampaignCard({ campaign }) {
         <NavBtn onClick={goPrev}>‹</NavBtn>
         {view === "overview" ? (
           <>
-            <div style={{ fontSize: 15, fontWeight: 800, color: T.navyDark }}>{campaign.title}</div>
+            <div style={{ fontSize: 15, fontWeight: 800, color: T.navyDark }}>{data.title}</div>
             <div style={{ marginLeft: "auto", fontSize: 12, color: T.textLight, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap" }} onClick={() => setViewIdx(1)}>Trendline thảo luận</div>
           </>
         ) : (
@@ -78,11 +82,11 @@ export function CampaignCard({ campaign }) {
         <NavBtn onClick={goNext}>›</NavBtn>
       </div>
 
-      {view === "overview" && <CampaignOverview campaign={campaign} />}
-      {view === "trendline" && <CampaignTrendline stats={campaign.trendStats} data={campaign.trendData} />}
-      {view === "channel-ratio" && <CampaignChannelRatio channelRatio={campaign.channelRatio} />}
-      {view === "topics" && <CampaignTopics topics={campaign.topics} />}
-      {view === "top-sources" && <CampaignTopSources sources={campaign.topSources} />}
+      {view === "overview" && <CampaignOverview campaign={data} />}
+      {view === "trendline" && <CampaignTrendline stats={data.trendStats} data={data.trendData} />}
+      {view === "channel-ratio" && <CampaignChannelRatio channelRatio={data.channelRatio} />}
+      {view === "topics" && <CampaignTopics topics={data.topics} />}
+      {view === "top-sources" && <CampaignTopSources sources={data.topSources} />}
 
       <div style={{ borderTop: "1px solid " + T.border, paddingTop: 16 }}>
         <div style={{ fontSize: 15, fontWeight: 800, color: T.navyDark, marginBottom: 6 }}>Tin nổi bật</div>

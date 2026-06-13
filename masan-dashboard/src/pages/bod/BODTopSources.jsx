@@ -1,11 +1,16 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { T } from "../../constants/theme";
 import { Pagination } from "../../components/common/Pagination";
 import { RangeToggle, BODHeaderNav } from "./BODRangeNav";
 import { BODFeaturedNews } from "./BODFeaturedNews";
-import { BOD_ARTICLES } from "./bodData";
+import { filterBodArticles } from "./bodData";
+import { useFC } from "../../context/FilterContext";
 
 const CHANNEL_FILTERS = ["Facebook", "Youtube", "TikTok", "Báo điện tử", "Forum", "Social Sites", "Threads"];
+const CHANNEL_MAP = {
+  "Facebook": "Facebook", "Youtube": "Youtube", "TikTok": "Tiktok",
+  "Báo điện tử": "News", "Forum": "Forum", "Social Sites": "Social", "Threads": "Threads",
+};
 
 const COLS = "2fr 1fr 1fr 1fr 1fr";
 
@@ -21,6 +26,12 @@ export function BODTopSources({ setTab }) {
   const [range, setRange] = useState("24h");
   const [channel, setChannel] = useState("Facebook");
   const [page, setPage] = useState(1);
+  const fc = useFC();
+
+  const articles = useMemo(
+    () => filterBodArticles(fc?.applied, { channel: CHANNEL_MAP[channel] }),
+    [fc?.applied, channel]
+  );
 
   return (
     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
@@ -63,7 +74,7 @@ export function BODTopSources({ setTab }) {
 
         <Pagination total={10} current={page} onChange={setPage} />
       </div>
-      <BODFeaturedNews articles={BOD_ARTICLES} />
+      <BODFeaturedNews articles={articles} title={`Tin nổi bật: ${channel}`} />
     </div>
   );
 }

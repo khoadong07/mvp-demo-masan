@@ -1,29 +1,23 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import { T } from "../../constants/theme";
 import { RangeToggle, BODHeaderNav } from "./BODRangeNav";
 import { BODFeaturedNews } from "./BODFeaturedNews";
-import { SENTIMENT_24H, SENTIMENT_7D, BOD_ARTICLES } from "./bodData";
+import { filterBodArticles } from "./bodData";
+import { useBodData } from "./useBodData";
+import { useFC } from "../../context/FilterContext";
 
 const RING_COLORS = {
-  "Threads": "#BDC3C7",
-  "E-commerce": "#F1C40F",
-  "Youtube": "#E74C3C",
-  "Social": "#9B59B6",
   "Facebook": "#2D6CDF",
-  "Forums": "#F5A28A",
-  "Tiktok": "#111111",
+  "Social":   "#9B59B6",
+  "Tiktok":   "#111111",
+  "News":     "#F39C12",
+  "Youtube":  "#E74C3C",
+  "Forum":    "#F5A28A",
+  "Threads":  "#BDC3C7",
+  "Linkedin": "#0A66C2",
+  "E-commerce": "#F1C40F",
 };
-
-const CHANNEL_RATIO = [
-  { name: "Threads", value: 9.7 },
-  { name: "E-commerce", value: 6.6 },
-  { name: "Youtube", value: 6.6 },
-  { name: "Social", value: 13.2 },
-  { name: "Facebook", value: 62.0 },
-  { name: "Forums", value: 1.6 },
-  { name: "Tiktok", value: 0.4 },
-];
 
 const RADIAN = Math.PI / 180;
 
@@ -46,9 +40,70 @@ const renderLabel = ({ cx, cy, midAngle, outerRadius, name, value, index }) => {
   );
 };
 
+function PieLegend({ items, hiddenKeys, onToggle }) {
+  return (
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 10, justifyContent: "center", fontSize: 11, cursor: "pointer", marginTop: 6 }}>
+      {items.map(({ name, color }) => {
+        const hidden = hiddenKeys.has(name);
+        return (
+          <span key={name} onClick={() => onToggle(name)}
+            style={{ display: "flex", alignItems: "center", gap: 5, opacity: hidden ? 0.35 : 1, userSelect: "none" }}>
+            <span style={{ width: 8, height: 8, borderRadius: "50%", flexShrink: 0,
+              background: hidden ? "transparent" : color,
+              outline: hidden ? "1.5px solid " + color : "none",
+            }} />
+            <span style={{ textDecoration: hidden ? "line-through" : "none" }}>{name}</span>
+          </span>
+        );
+      })}
+    </div>
+  );
+}
+
 export function BODChannelRatio({ setTab }) {
   const [range, setRange] = useState("24h");
-  const total = range === "24h" ? SENTIMENT_24H.total : SENTIMENT_7D.total;
+  const [clickFilter, setClickFilter] = useState(null);
+  const [hiddenKeys, setHiddenKeys] = useState(new Set());
+  const fc = useFC();
+  const bodData = useBodData();
+
+  const rawData = range === "24h" ? bodData.channel24h : range === "7d" ? bodData.channel7d : bodData.channel30d;
+
+  const toggleLegend = (name) => {
+    setHiddenKeys(prev => {
+      const next = new Set(prev);
+      if (next.has(name)) next.delete(name); else next.add(name);
+      return next;
+    });
+    if (clickFilter?.channel === name) setClickFilter(null);
+  };
+
+  const channelData = rawData.filter(e => !hiddenKeys.has(e.name));
+  const visibleTotal = channelData.reduce((s, e) => s + e.count, 0);
+
+  const legendItems = rawData.map(e => ({ name: e.name, color: RING_COLORS[e.name] || "#999" }));
+
+  const articles = useMemo(() => {
+    const visibleChannels = rawData.filter(e => !hiddenKeys.has(e.name)).map(e => e.name);
+    let channel = null;
+    if (clickFilter?.channel && !hiddenKeys.has(clickFilter.channel)) {
+      channel = clickFilter.channel;
+    } else if (visibleChannels.length === 1) {
+      channel = visibleChannels[0];
+    }
+    return filterBodArticles(fc?.applied, channel ? { channel } : null);
+  }, [fc?.applied, clickFilter, hiddenKeys, rawData]);
+
+  const visibleChannels = rawData.filter(e => !hiddenKeys.has(e.name)).map(e => e.name);
+  let newsTitle = "Tin nổi bật";
+  if (clickFilter?.channel && !hiddenKeys.has(clickFilter.channel)) {
+    newsTitle = `Tin nổi bật: ${clickFilter.channel}`;
+  } else if (visibleChannels.length === 1) {
+    newsTitle = `Tin nổi bật: ${visibleChannels[0]}`;
+  }
+
+  const hasFilter = clickFilter !== null || hiddenKeys.size > 0;
+  const resetAll = () => { setClickFilter(null); setHiddenKeys(new Set()); };
 
   return (
     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
@@ -58,21 +113,28 @@ export function BODChannelRatio({ setTab }) {
         <div style={{ position: "relative" }}>
           <ResponsiveContainer width="100%" height={320}>
             <PieChart margin={{ top: 24, right: 90, bottom: 24, left: 90 }}>
-              <Pie data={CHANNEL_RATIO} dataKey="value" nameKey="name" cx="50%" cy="50%"
+              <Pie data={channelData} dataKey="value" nameKey="name" cx="50%" cy="50%"
                 startAngle={90} endAngle={-270} isAnimationActive={false}
-                innerRadius={62} outerRadius={96} labelLine={false} label={renderLabel}>
-                {CHANNEL_RATIO.map((e, i) => <Cell key={i} fill={RING_COLORS[e.name]} />)}
+                innerRadius={62} outerRadius={96} labelLine={false} label={channelData.length ? renderLabel : false}
+                style={{ cursor: "pointer" }}
+                onClick={entry => setClickFilter({ channel: entry.name })}>
+                {channelData.map((e, i) => <Cell key={i} fill={RING_COLORS[e.name] || "#999"} />)}
               </Pie>
               <Tooltip formatter={(v, n) => [v + "%", n]} contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid " + T.border }} />
             </PieChart>
           </ResponsiveContainer>
           <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", textAlign: "center", pointerEvents: "none" }}>
-            <div style={{ fontSize: 30, fontWeight: 900, color: T.navyDark }}>{total}</div>
+            <div style={{ fontSize: 30, fontWeight: 900, color: T.navyDark }}>{visibleTotal}</div>
             <div style={{ fontSize: 12, color: T.textSub }}>Buzz</div>
           </div>
         </div>
+        {legendItems.length > 0 && <PieLegend items={legendItems} hiddenKeys={hiddenKeys} onToggle={toggleLegend} />}
       </div>
-      <BODFeaturedNews articles={BOD_ARTICLES} />
+      <BODFeaturedNews
+        articles={articles}
+        title={newsTitle}
+        onReset={hasFilter ? resetAll : undefined}
+      />
     </div>
   );
 }
