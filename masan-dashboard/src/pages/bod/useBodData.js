@@ -34,6 +34,15 @@ const MOCK_24H_P = [ 3,  2,  2,  6,  8,  7, 11,  6];  // sum=45
 const MOCK_24H_N = [ 4,  2,  1,  4,  5,  3,  2,  1];  // sum=22
 
 function sum(arr) { return arr.reduce((a, b) => a + b, 0); }
+
+// Seeded per-point variance: returns multiplier in [0.75, 1.25]
+// seed=0 means no variance (initial/reset state)
+export function varyFactor(seed, idx) {
+  if (seed === 0) return 1;
+  const x = Math.sin(seed * 127.1 + idx * 311.7) * 43758.5453;
+  return 0.75 + (x - Math.floor(x)) * 0.5;
+}
+
 function dayLabel(day) {
   const dt = new Date("2026-01-01");
   dt.setDate(dt.getDate() + day);
@@ -98,46 +107,64 @@ export function useBodData() {
     const applied = fc?.applied ?? {};
     const sentIdx = applied.sentiment ?? -1;
     const chIdx   = applied.channel   ?? -1;
+    const seed    = fc?.randomSeed ?? 0;
 
     let scale = 1.0;
     if (sentIdx >= 0 && sentIdx < SENT_SCALE.length) scale *= SENT_SCALE[sentIdx];
     if (chIdx   >= 0 && chIdx   < CH_SCALE.length)   scale *= CH_SCALE[chIdx];
 
-    const sc = n => Math.max(0, Math.round(n * scale));
+    const scv = (n, idx) => Math.max(0, Math.round(n * scale * varyFactor(seed, idx)));
     const maxDay = BASE_MAX_DAY;
     const neu = (p, n) => Math.round((p + n) * 2.0);
 
+    // trend24h: idx 0-15
     const trend24h = TIME_SLOTS.map((time, i) => ({
       time, day: maxDay,
-      Positive: sc(MOCK_24H_P[i]),
-      Negative: sc(MOCK_24H_N[i]),
+      Positive: scv(MOCK_24H_P[i], i * 2),
+      Negative: scv(MOCK_24H_N[i], i * 2 + 1),
     }));
+    // trend7d: idx 20-33
     const trend7d = Array.from({ length: 7 }, (_, i) => ({
       time: dayLabel(maxDay - 6 + i), day: maxDay - 6 + i,
-      Positive: sc(MOCK_7D_P[i]),
-      Negative: sc(MOCK_7D_N[i]),
+      Positive: scv(MOCK_7D_P[i], 20 + i * 2),
+      Negative: scv(MOCK_7D_N[i], 20 + i * 2 + 1),
     }));
+    // trend30d: idx 40-99
     const trend30d = Array.from({ length: 30 }, (_, i) => ({
       time: dayLabel(maxDay - 29 + i), day: maxDay - 29 + i,
-      Positive: sc(MOCK_30D_P[i]),
-      Negative: sc(MOCK_30D_N[i]),
+      Positive: scv(MOCK_30D_P[i], 40 + i * 2),
+      Negative: scv(MOCK_30D_N[i], 40 + i * 2 + 1),
     }));
 
-    const P24  = sc(P24_BASE);  const N24  = sc(N24_BASE);
-    const P7d  = sc(P7D_BASE);  const N7d  = sc(N7D_BASE);
-    const P30d = sc(P30D_BASE); const N30d = sc(N30D_BASE);
+    // sentiment aggregates: idx 100-105
+    const P24  = scv(P24_BASE, 100);  const N24  = scv(N24_BASE, 101);
+    const P7d  = scv(P7D_BASE, 102);  const N7d  = scv(N7D_BASE, 103);
+    const P30d = scv(P30D_BASE, 104); const N30d = scv(N30D_BASE, 105);
+
+    // channel data with variance: idx 110+
+    const applyChannelVariance = (list, baseIdx) => {
+      const varied = list.map((c, i) => ({
+        ...c,
+        count: scv(c.count, baseIdx + i),
+      }));
+      const total = varied.reduce((s, c) => s + c.count, 0);
+      return varied.map(c => ({
+        ...c,
+        value: total > 0 ? Math.round(c.count / total * 1000) / 10 : 0,
+      }));
+    };
 
     return {
       trend24h, trend7d, trend30d,
       sentiment24h: { Positive: P24,  Negative: N24,  Neutral: neu(P24,N24),   total: P24+N24+neu(P24,N24)   },
       sentiment7d:  { Positive: P7d,  Negative: N7d,  Neutral: neu(P7d,N7d),   total: P7d+N7d+neu(P7d,N7d)   },
       sentiment30d: { Positive: P30d, Negative: N30d, Neutral: neu(P30d,N30d), total: P30d+N30d+neu(P30d,N30d) },
-      channel24h: filterChannels(CHANNEL_24H, chIdx),
-      channel7d:  filterChannels(CHANNEL_7D,  chIdx),
-      channel30d: filterChannels(CHANNEL_30D, chIdx),
+      channel24h: applyChannelVariance(filterChannels(CHANNEL_24H, chIdx), 110),
+      channel7d:  applyChannelVariance(filterChannels(CHANNEL_7D,  chIdx), 120),
+      channel30d: applyChannelVariance(filterChannels(CHANNEL_30D, chIdx), 130),
       maxDay,
     };
-  }, [fc?.applied]);
+  }, [fc?.applied, fc?.randomSeed]);
 }
 
 export function useBodSentimentForPeriod(period) {
@@ -146,18 +173,17 @@ export function useBodSentimentForPeriod(period) {
     const applied = fc?.applied ?? {};
     const sentIdx = applied.sentiment ?? -1;
     const chIdx   = applied.channel   ?? -1;
+    const seed    = fc?.randomSeed ?? 0;
 
     let scale = 1.0;
     if (sentIdx >= 0 && sentIdx < SENT_SCALE.length) scale *= SENT_SCALE[sentIdx];
     if (chIdx   >= 0 && chIdx   < CH_SCALE.length)   scale *= CH_SCALE[chIdx];
 
-    const sc = n => Math.max(0, Math.round(n * scale));
-
-    // Sum the last `period` days from the 30d mock arrays
     const start = Math.max(0, 30 - period);
-    const P   = sc(sum(MOCK_30D_P.slice(start)));
-    const N   = sc(sum(MOCK_30D_N.slice(start)));
+    // idx 140-141 so they don't collide with useBodData indices
+    const P   = Math.max(0, Math.round(sum(MOCK_30D_P.slice(start)) * scale * varyFactor(seed, 140)));
+    const N   = Math.max(0, Math.round(sum(MOCK_30D_N.slice(start)) * scale * varyFactor(seed, 141)));
     const Neu = Math.round((P + N) * 2.0);
     return { Positive: P, Negative: N, Neutral: Neu, total: P + N + Neu };
-  }, [fc?.applied, period]);
+  }, [fc?.applied, fc?.randomSeed, period]);
 }

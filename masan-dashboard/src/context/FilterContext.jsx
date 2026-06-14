@@ -8,9 +8,10 @@ export const FilterCtx = createContext(null);
 export function FilterProvider({ children }) {
   const [draft, setDraft] = useState(DEFAULT_FILTERS);
   const [applied, setApplied] = useState(DEFAULT_FILTERS);
+  const [randomSeed, setRandomSeed] = useState(0);
 
-  const applyFilters = () => setApplied({ ...draft });
-  const resetFilters = () => { setDraft(DEFAULT_FILTERS); setApplied(DEFAULT_FILTERS); };
+  const applyFilters = () => { setApplied({ ...draft }); setRandomSeed(s => s + 1); };
+  const resetFilters = () => { setDraft(DEFAULT_FILTERS); setApplied(DEFAULT_FILTERS); setRandomSeed(0); };
 
   const filteredRows = useMemo(() => {
     const fd = dateToDayOff(applied.dateFrom), td = dateToDayOff(applied.dateTo);
@@ -28,7 +29,7 @@ export function FilterProvider({ children }) {
   const peak = useMemo(() => peakDay(filteredRows), [filteredRows]);
 
   return (
-    <FilterCtx.Provider value={{ draft, setDraft, applyFilters, resetFilters, agg, applied, filteredRows, peak }}>
+    <FilterCtx.Provider value={{ draft, setDraft, applyFilters, resetFilters, agg, applied, filteredRows, peak, randomSeed }}>
       {children}
     </FilterCtx.Provider>
   );

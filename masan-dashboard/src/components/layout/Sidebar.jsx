@@ -2,17 +2,17 @@ import { T } from "../../constants/theme";
 
 function MasanLogo({ collapsed }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: collapsed ? 0 : 8, overflow: "hidden", transition: "all .22s ease" }}>
-      <svg width="36" height="34" viewBox="0 0 108 96" fill="none" style={{ flexShrink: 0 }}>
-        <rect x="68" y="0" width="40" height="44" fill="#0B3160"/>
-        <rect x="44" y="18" width="56" height="60" fill="#1762A4"/>
-        <rect x="20" y="36" width="52" height="60" fill="#4E8EC4"/>
-        <rect x="0" y="56" width="46" height="40" fill="#84B6D4"/>
-      </svg>
-      {!collapsed && <div style={{ lineHeight: 1.15, overflow: "hidden", whiteSpace: "nowrap" }}>
-        <div style={{ fontSize: 15, fontWeight: 900, color: T.navyDark, letterSpacing: 1.5 }}>MASAN</div>
-        <div style={{ fontSize: 9, fontWeight: 500, color: T.textSub, letterSpacing: 2 }}>GROUP</div>
-      </div>}
+    <div style={{ overflow: "hidden", transition: "all .22s ease", flexShrink: 0 }}>
+      {collapsed ? (
+        /* Collapsed: chỉ show phần icon (crop right ~33% của SVG) */
+        <div style={{ width: 34, height: 28, overflow: "hidden", position: "relative" }}>
+          <img src="/image.svg" alt="Masan Group"
+            style={{ height: 28, width: "auto", position: "absolute", right: 0 }} />
+        </div>
+      ) : (
+        <img src="/image.svg" alt="Masan Group"
+          style={{ height: 28, width: "auto", maxWidth: 168, display: "block" }} />
+      )}
     </div>
   );
 }
@@ -28,30 +28,34 @@ const NAV = [
 
 export function Sidebar({ page, setPage, collapsed, setCollapsed }) {
   return (
-    <div style={{ width: collapsed ? 68 : 220, minWidth: collapsed ? 68 : 220, background: T.white, borderRight: "1px solid " + T.border, display: "flex", flexDirection: "column", paddingBottom: 16, gap: 2, flexShrink: 0, height: "100%", overflowY: "hidden", transition: "width .22s ease,min-width .22s ease" }}>
-      {/* Logo + collapse toggle */}
-      <div style={{ height: 64, display: "flex", alignItems: "center", justifyContent: "space-between", padding: collapsed ? "0 12px" : "0 12px 0 16px", borderBottom: "1px solid " + T.border, marginBottom: 10, flexShrink: 0, overflow: "hidden", transition: "padding .22s ease" }}>
+    <div style={{ width: collapsed ? 68 : 220, minWidth: collapsed ? 68 : 220, background: T.white, borderRight: "1px solid " + T.border, display: "flex", flexDirection: "column", gap: 2, flexShrink: 0, height: "100%", overflowY: "hidden", transition: "width .22s ease,min-width .22s ease" }}>
+      {/* Header: logo centered, toggle absolutely on right */}
+      <div style={{ height: 64, display: "flex", alignItems: "center", justifyContent: "center", borderBottom: "1px solid " + T.border, marginBottom: 10, flexShrink: 0, overflow: "hidden", position: "relative" }}>
         <MasanLogo collapsed={collapsed} />
         <button onClick={() => setCollapsed(!collapsed)} title={collapsed ? "Mở rộng" : "Thu gọn"}
-          style={{ width: 26, height: 26, borderRadius: 6, border: "1px solid " + T.border, background: "#F7FAFD", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: T.textSub, marginLeft: collapsed ? -2 : 4 }}>
+          style={{ position: "absolute", right: 10, width: 28, height: 28, borderRadius: 6, border: "1px solid " + T.border, background: "#F7FAFD", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: T.textSub, flexShrink: 0, opacity: collapsed ? 0.5 : 1, transition: "opacity .2s" }}>
           {collapsed
-            ? <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M4 2l4 4-4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>
-            : <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M8 2L4 6l4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>
+            ? <svg width="13" height="13" viewBox="0 0 12 12" fill="none"><path d="M4 2l4 4-4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>
+            : <svg width="13" height="13" viewBox="0 0 12 12" fill="none"><path d="M8 2L4 6l4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>
           }
         </button>
       </div>
-      {NAV.map(n => {
-        const on = page === n.k;
-        return (
-          <button key={n.k} onClick={() => setPage(n.k)} title={collapsed ? n.l : undefined}
-            style={{ margin: collapsed ? "4px auto" : "2px 10px", padding: collapsed ? "10px" : "10px 12px", width: collapsed ? 46 : undefined, borderRadius: 10, border: "none", cursor: "pointer", background: on ? T.navy : "transparent", color: on ? "#fff" : T.navy, display: "flex", alignItems: "center", gap: collapsed ? 0 : 10, transition: "background .15s,width .22s", textAlign: "left", justifyContent: collapsed ? "center" : undefined, flexShrink: 0 }}
-            onMouseEnter={e => { if (!on) e.currentTarget.style.background = "#EBF2FA"; }}
-            onMouseLeave={e => { if (!on) e.currentTarget.style.background = "transparent"; }}>
-            <span style={{ width: 20, height: 20, display: "flex", flexShrink: 0, opacity: on ? 1 : .75 }}>{n.svg}</span>
-            {!collapsed && <span style={{ fontSize: 13.5, fontWeight: on ? 700 : 500, whiteSpace: "nowrap" }}>{n.l}</span>}
-          </button>
-        );
-      })}
+
+      {/* Nav items */}
+      <div style={{ flex: 1, position: "relative" }}>
+        {NAV.map(n => {
+          const on = page === n.k;
+          return (
+            <button key={n.k} onClick={() => setPage(n.k)} title={collapsed ? n.l : undefined}
+              style={{ margin: collapsed ? "4px auto" : "2px 10px", padding: collapsed ? "10px" : "10px 12px", width: collapsed ? 46 : "calc(100% - 20px)", borderRadius: 10, border: "none", cursor: "pointer", background: on ? T.navy : "transparent", color: on ? "#fff" : T.navy, display: "flex", alignItems: "center", gap: collapsed ? 0 : 10, transition: "background .15s", textAlign: "left", justifyContent: collapsed ? "center" : undefined, flexShrink: 0, boxSizing: "border-box" }}
+              onMouseEnter={e => { if (!on) e.currentTarget.style.background = "#EBF2FA"; }}
+              onMouseLeave={e => { if (!on) e.currentTarget.style.background = "transparent"; }}>
+              <span style={{ width: 20, height: 20, display: "flex", flexShrink: 0, opacity: on ? 1 : .75 }}>{n.svg}</span>
+              {!collapsed && <span style={{ fontSize: 13.5, fontWeight: on ? 700 : 500, whiteSpace: "nowrap" }}>{n.l}</span>}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

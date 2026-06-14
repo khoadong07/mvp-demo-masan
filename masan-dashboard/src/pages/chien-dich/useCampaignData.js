@@ -52,6 +52,48 @@ export function useCampaignData(campaign) {
     const negativePct = total > 0 ? Math.round(neg / total * 1000) / 10 : 0;
     const neutralPct = total > 0 ? Math.round((100 - positivePct - negativePct) * 10) / 10 : 100;
 
+    // Scale trendStats by full scale factor
+    const trendStats = {
+      mxh: Math.round(campaign.trendStats.mxh * scale),
+      baichi: Math.round(campaign.trendStats.baichi * scale),
+      khac: Math.round(campaign.trendStats.khac * scale),
+    };
+
+    // Filter trendData by date range, scale per-point values by chFactor * lblFactor
+    const pointScale = chFactor * lblFactor;
+    const trendData = campaign.trendData
+      .filter(d => {
+        const [day, mon] = d.date.split("/");
+        const fullDate = `2026-${mon}-${day}`;
+        return fullDate >= df && fullDate <= dt;
+      })
+      .map(d => ({
+        ...d,
+        mxh: Math.round(d.mxh * pointScale),
+        baichi: Math.round(d.baichi * pointScale),
+        khac: Math.round(d.khac * pointScale),
+      }));
+
+    // Scale channelRatio total, keep breakdown percentages unchanged
+    const channelRatio = {
+      total: Math.round(campaign.channelRatio.total * scale),
+      breakdown: campaign.channelRatio.breakdown,
+    };
+
+    // Scale topics counts
+    const topics = campaign.topics.map(t => ({
+      ...t,
+      count: Math.max(0, Math.round(t.count * scale)),
+    }));
+
+    // Scale topSources stats
+    const topSources = campaign.topSources.map(s => ({
+      ...s,
+      interactions: Math.round(s.interactions * scale),
+      posts: Math.max(1, Math.round(s.posts * scale)),
+      views: Math.round(s.views * scale),
+    }));
+
     // Filter articles from pool
     let arts = POOL.filter(a =>
       a.title && a.content &&
@@ -81,6 +123,11 @@ export function useCampaignData(campaign) {
       negativePct,
       neutralPct,
       noNegativeNote: neg === 0,
+      trendStats,
+      trendData,
+      channelRatio,
+      topics,
+      topSources,
       articles: arts,
     };
   }, [fc?.applied, campaign]);

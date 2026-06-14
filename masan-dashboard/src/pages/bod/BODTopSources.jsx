@@ -5,6 +5,7 @@ import { RangeToggle, BODHeaderNav } from "./BODRangeNav";
 import { BODFeaturedNews } from "./BODFeaturedNews";
 import { filterBodArticles } from "./bodData";
 import { useFC } from "../../context/FilterContext";
+import { varyFactor } from "./useBodData";
 
 const CHANNEL_FILTERS = ["Facebook", "Youtube", "TikTok", "Báo điện tử", "Forum", "Social Sites", "Threads"];
 const CHANNEL_MAP = {
@@ -27,6 +28,7 @@ export function BODTopSources({ setTab }) {
   const [channel, setChannel] = useState("Facebook");
   const [page, setPage] = useState(1);
   const fc = useFC();
+  const seed = fc?.randomSeed ?? 0;
 
   const articles = useMemo(
     () => filterBodArticles(fc?.applied, { channel: CHANNEL_MAP[channel] }),
@@ -59,15 +61,18 @@ export function BODTopSources({ setTab }) {
         {TOP_SOURCES.map((s, i) => {
           const top = i === 0;
           const color = top ? T.textPrimary : T.textLight;
+          const interactions = Math.round(s.interactions * varyFactor(seed, 300 + i * 3));
+          const posts = Math.max(1, Math.round(s.posts * varyFactor(seed, 300 + i * 3 + 1)));
+          const views = Math.round(s.views * varyFactor(seed, 300 + i * 3 + 2));
           return (
             <div key={i} style={{ display: "grid", gridTemplateColumns: COLS, gap: 12, alignItems: "center", padding: "14px 0", borderBottom: "1px solid " + T.border }}>
               <div style={{ fontSize: 13, fontWeight: top ? 800 : 600, color }}>{s.name}</div>
               <div>
                 <a href={s.url || undefined} target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, fontStyle: "italic", textDecoration: "underline", color: T.textLight }}>Link</a>
               </div>
-              <div style={{ fontSize: 13, color }}>{s.interactions.toLocaleString()}</div>
-              <div style={{ fontSize: 13, color }}>{s.posts}</div>
-              <div style={{ fontSize: 13, color }}>{s.views}</div>
+              <div style={{ fontSize: 13, color }}>{interactions.toLocaleString()}</div>
+              <div style={{ fontSize: 13, color }}>{posts}</div>
+              <div style={{ fontSize: 13, color }}>{views.toLocaleString()}</div>
             </div>
           );
         })}

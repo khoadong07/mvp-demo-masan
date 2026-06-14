@@ -1,15 +1,19 @@
 import { T, fmt, nsr } from "../../constants/theme";
 import { BOD_HOT_TOPICS } from "./bodData";
+import { varyFactor } from "./useBodData";
+import { useFC } from "../../context/FilterContext";
 
 const COLS = "2fr 80px 80px 80px 80px 1fr";
 
 export function BODHotTopics({ period }) {
   const scale = period / 7;
+  const fc = useFC();
+  const seed = fc?.randomSeed ?? 0;
 
-  const rows = BOD_HOT_TOPICS.map(t => {
-    const Positive = Math.round(t.base.Positive * scale);
-    const Negative = Math.round(t.base.Negative * scale);
-    const Neutral = Math.round(t.base.Neutral * scale);
+  const rows = BOD_HOT_TOPICS.map((t, i) => {
+    const Positive = Math.round(t.base.Positive * scale * varyFactor(seed, 200 + i * 3));
+    const Negative = Math.round(t.base.Negative * scale * varyFactor(seed, 200 + i * 3 + 1));
+    const Neutral  = Math.round(t.base.Neutral  * scale * varyFactor(seed, 200 + i * 3 + 2));
     const total = Positive + Negative + Neutral;
     const nsrVal = parseFloat(nsr(Positive, Negative, total));
     return { topic: t.topic, Positive, Negative, Neutral, total, nsrVal };
